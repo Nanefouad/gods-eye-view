@@ -12,9 +12,7 @@ export class MapStackController extends MapSourceController {
     const registry = createDefaultMapSources({ ...options, googleApiKey });
     super(viewer, {
       registry,
-      initialStack: options.googleTileset
-        ? options.initialStack || 'photoreal'
-        : registry.defaultId,
+      initialStack: options.initialStack || registry.defaultId || 'osm',
       ...options,
       requestRender: governorRequestRender,
     });

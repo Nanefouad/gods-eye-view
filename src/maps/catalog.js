@@ -32,8 +32,8 @@ export const MAP_STACKS = [
   },
   {
     id: 'osm',
-    label: 'OSM',
-    shortLabel: 'OSM',
+    label: 'OpenStreetView',
+    shortLabel: 'OSV',
     kind: 'osm',
     requiresIon: false,
   },

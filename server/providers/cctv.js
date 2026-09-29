@@ -129,6 +129,36 @@ export function cctvProxy({ sourceRoot = process.cwd() } = {}) {
     }
   };
 
+  /**
+   * Fetch an OpenStreetView / OpenStreetMap static tile as an open street-level fallback.
+   */
+  const openStreetViewFallback = async ({ lat, lon }) => {
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    try {
+      const latRad = (lat * Math.PI) / 180;
+      const zoom = 17;
+      const n = 2 ** zoom;
+      const x = Math.floor(((lon + 180) / 360) * n);
+      const y = Math.floor(((1 - Math.asinh(Math.tan(latRad)) / Math.PI) / 2) * n);
+      const osmUrl = `https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`;
+      const osmResp = await fetch(osmUrl, {
+        headers: { 'User-Agent': 'GodsEyeView/1.0 (https://github.com/Nanefouad/gods-eye-view)' },
+        signal: AbortSignal.timeout(CCTV_FRAME_FETCH_TIMEOUT_MS),
+      });
+      if (osmResp.ok) {
+        return {
+          ok: true,
+          body: Buffer.from(await osmResp.arrayBuffer()),
+          contentType: 'image/png',
+          label: 'OpenStreetView',
+        };
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  };
+
   const installMiddleware = (server) => {
     server.httpServer?.on('close', () => {
       puller.shutdown();
@@ -502,6 +532,23 @@ export function cctvProxy({ sourceRoot = process.cwd() } = {}) {
             'X-CCTV-Source': 'upstream-image',
           });
           res.end(upstreamImage.body);
+          return;
+        }
+
+        const osv = await openStreetViewFallback({ lat, lon });
+        if (osv?.ok) {
+          setHealth(cameraId, {
+            status: 'degraded',
+            sourceKind: 'openstreetview',
+            label: 'OpenStreetView',
+            message: 'Fallback OpenStreetView frame',
+          });
+          res.writeHead(200, {
+            'Content-Type': osv.contentType,
+            'Cache-Control': 'no-store',
+            'X-CCTV-Source': 'openstreetview',
+          });
+          res.end(osv.body);
           return;
         }
 
