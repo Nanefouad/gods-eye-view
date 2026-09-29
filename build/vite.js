@@ -7,8 +7,8 @@ export function createBrowserViteConfig({
   publicDir,
   googleApiKey,
   cesiumToken,
-  host = 'localhost',
-  port = 4173,
+  host = '0.0.0.0',
+  port = 3000,
   command,
 } = {}) {
   return {
@@ -29,19 +29,11 @@ export function createBrowserViteConfig({
       ],
     },
     server: {
-      host: host || 'localhost',
-      port: parseInt(port, 10) || 4173,
-      allowedHosts:
-        host === '0.0.0.0' || host === '::'
-          ? true
-          : ['localhost', '127.0.0.1', '.local'],
+      host: host || '0.0.0.0',
+      port: parseInt(port, 10) || 3000,
+      allowedHosts: true,
       fs: {
         deny: ['.env', '.env.*', '*.{crt,pem}', '**/.git/**', '**/ENVIRONMENT'],
-      },
-      // These headers protect the document containing Provider Settings.
-      headers: {
-        'X-Frame-Options': 'DENY',
-        'Content-Security-Policy': "frame-ancestors 'none'",
       },
     },
     define: {

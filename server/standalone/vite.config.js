@@ -16,8 +16,8 @@ export default defineConfig(({ command, mode }) => {
     plugins: [...localProviderPlugins(), apiNotFoundPlugin()],
     googleApiKey: process.env.GOOGLE_MAPS_API_KEY,
     cesiumToken: process.env.CESIUM_ION_TOKEN,
-    host: process.env.HOST,
-    port: process.env.PORT,
+    host: process.env.HOST || '0.0.0.0',
+    port: process.env.PORT || 3000,
     command,
   });
 });
